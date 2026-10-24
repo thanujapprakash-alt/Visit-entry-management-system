@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visitor Entry Management System</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--text:#1b2438;--muted:#6b7690;--pri:#2457d6;--pri2:#e8effd;--bd:#e1e7f0;--ok:#12805c;--okbg:#e0f5ec;--warn:#b45309;--warnbg:#fff1dc;--bad:#c0392b;--side:#14213d;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#172036;--text:#e8edf8;--muted:#98a3bd;--pri:#6b94ff;--pri2:#1f2d52;--bd:#27324d;--ok:#4cd9a0;--okbg:#12362c;--warn:#f5b45b;--warnbg:#3a2c12;--bad:#ff7b6b;--side:#0a1020;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#172036;--text:#e8edf8;--muted:#98a3bd;--pri:#6b94ff;--pri2:#1f2d52;--bd:#27324d;--ok:#4cd9a0;--okbg:#12362c;--warn:#f5b45b;--warnbg:#3a2c12;--bad:#ff7b6b;--side:#0a1020;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--card);z-index:30}
+button,input,select,textarea{font:inherit;color:inherit}
+.hide{display:none!important}
+.btn{border:1px solid var(--bd);background:var(--card);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--pri)}
+.btn.p{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.d{color:var(--bad)}
+.btn.s{padding:5px 9px;font-size:13px}
+/* login */
+#login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,var(--side),#2457d6)}
+.lcard{background:var(--card);width:100%;max-width:400px;padding:32px;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.logo{width:54px;height:54px;border-radius:14px;background:var(--pri2);display:grid;place-items:center;font-size:28px;margin-bottom:14px}
+.lcard h1{margin:0 0 4px;font-size:22px}.lcard p{margin:0 0 20px;color:var(--muted)}
+/* forms */
+label{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--bg)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-color:transparent}
+.bad input,.bad select{border-color:var(--bad)}
+.err{color:var(--bad);font-size:12px;margin-top:3px;display:none}.bad .err{display:block}
+.hint{font-size:12px;color:var(--muted);margin-top:14px;text-align:center}
+/* layout */
+#app{display:flex;min-height:100vh}
+aside{width:240px;background:var(--side);color:#fff;position:fixed;top:0;bottom:0;left:0;padding:calc(18px + env(safe-area-inset-top,0px)) 14px 18px;display:flex;flex-direction:column;z-index:20;transition:transform .2s}
+.brand{display:flex;gap:10px;align-items:center;font-weight:700;padding:4px 8px 18px;line-height:1.2}
+.brand span{font-size:26px}
+aside nav a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:9px;color:#c9d3ea;cursor:pointer;margin-bottom:4px;text-decoration:none}
+aside nav a:hover{background:rgba(255,255,255,.08)}
+aside nav a.on{background:var(--pri);color:#fff}
+aside .out{margin-top:auto}
+main{flex:1;margin-left:240px;padding:24px;min-width:0}
+.top{display:none}
+.scrim{display:none}
+h2{margin:0 0 4px;font-size:24px}.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.stat{display:flex;gap:14px;align-items:center}
+.ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:var(--pri2)}
+.stat b{font-size:26px;display:block;line-height:1}.stat small{color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.row h3{margin:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.span2{grid-column:1/-1}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;margin-bottom:14px}
+.filters label{margin:0}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:10px;border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.badge{padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+.in{background:var(--warnbg);color:var(--warn)}.ex{background:var(--okbg);color:var(--ok)}
+.acts{display:flex;gap:6px}
+.empty{text-align:center;padding:40px 10px;color:var(--muted)}.empty div{font-size:38px}
+/* modal + toast */
+#modal{position:fixed;inset:0;background:rgba(10,16,32,.55);display:grid;place-items:center;padding:16px;z-index:50}
+.mbox{background:var(--card);border-radius:14px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:22px}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin:14px 0}
+.dl small{display:block;color:var(--muted);font-size:12px}.dl div{word-break:break-word}
+.dl h4{grid-column:1/-1;margin:6px 0 0;color:var(--pri);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--side);color:#fff;padding:11px 18px;border-radius:10px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+@media(max-width:900px){
+ .stats{grid-template-columns:1fr 1fr}.filters{grid-template-columns:1fr 1fr}
+ aside{transform:translateX(-100%)}aside.open{transform:none}
+ .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:15}
+ main{margin-left:0;padding:16px}
+ .top{display:flex;align-items:center;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--card);border-bottom:1px solid var(--bd);padding:10px 14px;z-index:10;font-weight:700}
+ .top button{font-size:20px;background:none;border:0;cursor:pointer}
+}
+@media(max-width:560px){.stats{grid-template-columns:1fr}.grid,.dl,.filters{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<section id="login">
+ <form class="lcard" id="lf" novalidate>
+  <div class="logo">🏢</div>
+  <h1>Visitor Entry Management</h1>
+  <p>Admin / Security sign in</p>
+  <div id="g-u"><label for="u">Username</label><input id="u" autocomplete="username" placeholder="Enter username"><div class="err">Username is required</div></div>
+  <div id="g-p"><label for="p">Password</label><input id="p" type="password" autocomplete="current-password" placeholder="Enter password"><div class="err" id="pe">Password is required</div></div>
+  <button class="btn p" style="width:100%;margin-top:18px;padding:11px">Login</button>
+  <div class="hint">Demo login: <b>admin</b> / <b>admin123</b></div>
+ </form>
+</section>
+
+<div id="app" class="hide">
+ <aside id="side">
+  <div class="brand"><span>🏢</span><div>Visitor Entry<br>Management</div></div>
+  <nav>
+   <a data-v="dashboard">📊 Dashboard</a>
+   <a data-v="add">➕ Add Visitor</a>
+   <a data-v="records">📋 Visitor Records</a>
+   <a data-v="inside">🚪 Currently Inside</a>
+  </nav>
+  <nav class="out"><a id="logout">⏻ Logout</a></nav>
+ </aside>
+ <div class="scrim" id="scrim"></div>
+ <main>
+  <div class="top"><button id="menu" aria-label="Menu">☰</button><span>Visitor Entry Management</span></div>
+
+  <section id="v-dashboard">
+   <h2>Dashboard</h2><p class="sub" id="dt"></p>
+   <div class="stats" id="stats"></div>
+   <div class="card"><div class="row"><h3>Recent Visitors</h3><button class="btn s" data-go="records">View all</button></div><div class="tw" id="recent"></div></div>
+  </section>
+
+  <section id="v-add" class="hide">
+   <h2 id="ft">Add Visitor</h2><p class="sub">Register a new visitor entry.</p>
+   <form class="card" id="vf" novalidate>
+    <div class="grid">
+     <div><label>Visitor ID</label><input id="f-id" readonly></div>
+     <div id="g-name"><label>Visitor Name *</label><input id="f-name" placeholder="Full name"><div class="err">Enter a valid name (min 2 letters)</div></div>
+     <div id="g-phone"><label>Phone Number *</label><input id="f-phone" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"><div class="err">Enter a valid 10-digit phone number</div></div>
+     <div id="g-email"><label>Email *</label><input id="f-email" type="email" placeholder="name@example.com"><div class="err">Enter a valid email address</div></div>
+     <div id="g-purpose"><label>Purpose of Visit *</label><select id="f-purpose"><option value="">Select purpose</option><option>Meeting</option><option>Interview</option><option>Delivery</option><option>Admission Enquiry</option><option>Maintenance</option><option>Parent Visit</option><option>Official Visit</option><option>Other</option></select><div class="err">Select a purpose</div></div>
+     <div id="g-meet"><label>Person to Meet *</label><input id="f-meet" placeholder="e.g. Dr. Sharma (HOD)"><div class="err">Enter the person to meet</div></div>
+     <div id="g-date"><label>Date *</label><input id="f-date" type="date"><div class="err">Select a date</div></div>
+     <div id="g-entry"><label>Entry Time *</label><input id="f-entry" type="time"><div class="err">Select entry time</div></div>
+     <div id="g-exit" class="hide"><label>Exit Time (leave empty if still inside)</label><input id="f-exit" type="time"><div class="err">Exit time must be after entry time</div></div>
+     <div><label>Vehicle Number (optional)</label><input id="f-veh" placeholder="e.g. TN 09 AB 1234"></div>
+     <div class="span2"><label>Remarks (optional)</label><textarea id="f-rem" rows="2" placeholder="Any notes"></textarea></div>
+    </div>
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn p" id="fsub">Register Visitor</button><button type="button" class="btn" id="fcancel">Reset</button></div>
+   </form>
+  </section>
+
+  <section id="v-records" class="hide">
+   <div class="row"><div><h2>Visitor Records</h2><p class="sub" style="margin:0">Search, filter and manage all visitors.</p></div><button class="btn p" data-go="add">➕ Add Visitor</button></div>
+   <div class="card">
+    <div class="filters">
+     <div><input id="q" placeholder="🔍 Search name, phone, ID, person…"></div>
+     <div><input id="fd" type="date" title="Filter by date"></div>
+     <div><select id="fs"><option value="">All status</option><option>Inside</option><option>Exited</option></select></div>
+     <button class="btn" id="clr">Clear</button>
+    </div>
+    <div class="tw" id="all"></div>
+   </div>
+  </section>
+
+  <section id="v-inside" class="hide">
+   <h2>Currently Inside</h2><p class="sub">Visitors who have entered but not yet exited.</p>
+   <div class="card"><div class="tw" id="ins"></div></div>
+  </section>
+ </main>
+</div>
+
+<div id="modal" class="hide"><div class="mbox" id="mbox"></div></div>
+<div id="toast" class="hide"></div>
+
+<script>
+const K='vems_visitors_v1',S='vems_session_v1';
+let V=[],view='dashboard',editId=null,tt;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=(o=0)=>{const d=new Date();d.setDate(d.getDate()-o);return d.toLocaleDateString('en-CA')};
+const nowT=()=>new Date().toTimeString().slice(0,5);
+const fmtT=t=>{if(!t)return '—';let[h,m]=t.split(':').map(Number);return(h%12||12)+':'+String(m).padStart(2,'0')+' '+(h<12?'AM':'PM')};
+const fmtD=d=>new Date(d+'T00:00').toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const status=v=>v.exit?'Exited':'Inside';
+const badge=v=>`<span class="badge ${v.exit?'ex':'in'}">${status(v)}</span>`;
+
+function seed(){
+ const r=(n,name,ph,em,pu,me,d,en,ex,ve,re)=>({id:'VIS-'+String(n).padStart(4,'0'),name,phone:ph,email:em,purpose:pu,meet:me,date:today(d),entry:en,exit:ex,vehicle:ve||'',remarks:re||''});
+ return[
+ r(1,'Arjun Mehta','9876501234','arjun.mehta@gmail.com','Interview','Mrs. Kavitha (HR)',3,'09:30','11:15','TN 09 AB 4521','Campus recruitment drive'),
+ r(2,'Priya Nair','9847012345','priya.nair@outlook.com','Admission Enquiry','Admissions Office',3,'10:10','10:55','','Enquiring about B.E. CSE'),
+ r(3,'Rahul Verma','9812345670','rahul.v@yahoo.com','Delivery','Stores Dept',2,'12:20','12:35','TN 22 CD 7788','Lab equipment delivery'),
+ r(4,'Sneha Reddy','9908877665','sneha.reddy@gmail.com','Parent Visit','Mr. Ragavendran (Faculty)',2,'14:00','15:10','','Parent–teacher discussion'),
+ r(5,'Karthik Subramanian','9790123456','karthik.s@techserve.in','Maintenance','Admin Office',1,'08:45','13:00','TN 07 EF 3321','AC servicing, Block B'),
+ r(6,'Divya Lakshmi','9840099887','divya.l@gmail.com','Meeting','Dr. Sujitha (HOD)',1,'11:00','12:30','','Placement coordination'),
+ r(7,'Mohammed Faizal','9884411223','faizal.m@gmail.com','Official Visit','Principal Office',1,'15:30','16:20','TN 10 GH 9090','University inspection team'),
+ r(8,'Ananya Iyer','9944556677','ananya.iyer@gmail.com','Admission Enquiry','Admissions Office',0,'09:15','09:50','','Brochure collected'),
+ r(9,'Vikram Singh','9811122233','vikram.singh@infoline.com','Meeting','Mr. Kumar (Accounts)',0,'10:05','','TN 05 JK 1212','Vendor payment discussion'),
+ r(10,'Lakshmi Prasad','9700123987','lakshmi.p@gmail.com','Parent Visit','Class Advisor',0,'10:40','','','Fee query'),
+ r(11,'Rohit Sharma','9922334455','rohit.sharma@cloudsoft.io','Interview','Mrs. Kavitha (HR)',0,'11:20','','TN 14 LM 5566','Technical round'),
+ r(12,'Meena Krishnan','9884765432','meena.k@gmail.com','Delivery','Library',0,'11:45','','','Book consignment')];
+}
+function load(){try{V=JSON.parse(localStorage.getItem(K))}catch(e){V=null}if(!Array.isArray(V)){V=seed();save()}}
+function save(){try{localStorage.setItem(K,JSON.stringify(V))}catch(e){}}
+function nextId(){const m=V.reduce((a,v)=>Math.max(a,parseInt(v.id.split('-')[1])||0),0);return 'VIS-'+String(m+1).padStart(4,'0')}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hide');clearTimeout(tt);tt=setTimeout(()=>t.classList.add('hide'),2400)}
+
+/* ---------- navigation ---------- */
+function go(v){
+ view=v;
+ ['dashboard','add','records','inside'].forEach(x=>$('#v-'+x).classList.toggle('hide',x!==v));
+ $$('aside nav a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
+ $('#side').classList.remove('open');$('#scrim').classList.remove('show');
+ if(v==='add'&&editId===null)resetForm();
+ render();window.scrollTo(0,0);
+ try{history.replaceState(null,'','#'+v)}catch(e){}
+}
+function render(){
+ if(view==='dashboard')dash();
+ if(view==='records')records();
+ if(view==='inside')inside();
+}
+
+/* ---------- tables ---------- */
+function table(list,opt={}){
+ if(!list.length)return `<div class="empty"><div>${opt.icon||'🗂️'}</div><p>${opt.msg||'No visitors found.'}</p></div>`;
+ const full=opt.full;
+ return `<table><thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Purpose</th><th>Person to Meet</th><th>Date</th><th>Entry</th><th>Exit</th><th>Status</th>${full?'<th>Actions</th>':''}</tr></thead><tbody>`+
+ list.map(v=>`<tr><td><b>${v.id}</b></td><td>${esc(v.name)}</td><td>${esc(v.phone)}</td><td>${esc(v.purpose)}</td><td>${esc(v.meet)}</td><td>${fmtD(v.date)}</td><td>${fmtT(v.entry)}</td><td>${fmtT(v.exit)}</td><td>${badge(v)}</td>`+
+ (full?`<td><div class="acts"><button class="btn s" data-a="view" data-id="${v.id}">View</button>${opt.exitOnly||!v.exit?`<button class="btn s p" data-a="exit" data-id="${v.id}"${v.exit?' hidden':''}>Mark Exit</button>`:''}${opt.exitOnly?'':`<button class="btn s" data-a="edit" data-id="${v.id}">Edit</button><button class="btn s d" data-a="del" data-id="${v.id}">Delete</button>`}</div></td>`:'')+'</tr>').join('')+'</tbody></table>';
+}
+const sorted=l=>[...l].sort((a,b)=>(b.date+b.entry).localeCompare(a.date+a.entry));
+function dash(){
+ const t=today(),inn=V.filter(v=>!v.exit).length;
+ $('#dt').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+ const st=[['👥','Total Visitors',V.length],['🟠','Currently Inside',inn],['✅','Visitors Exited',V.length-inn],['📅',"Today’s Visitors",V.filter(v=>v.date===t).length]];
+ $('#stats').innerHTML=st.map(s=>`<div class="card stat"><div class="ic">${s[0]}</div><div><b>${s[2]}</b><small>${s[1]}</small></div></div>`).join('');
+ $('#recent').innerHTML=table(sorted(V).slice(0,6),{msg:'No visitors registered yet.'});
+}
+function records(){
+ const q=$('#q').value.trim().toLowerCase(),d=$('#fd').value,s=$('#fs').value;
+ const l=sorted(V).filter(v=>(!q||[v.id,v.name,v.phone,v.email,v.purpose,v.meet,v.vehicle].join(' ').toLowerCase().includes(q))&&(!d||v.date===d)&&(!s||status(v)===s));
+ $('#all').innerHTML=table(l,{full:1,msg:V.length?'No records match your search or filters.':'No visitors yet. Add your first visitor.'});
+}
+function inside(){
+ $('#ins').innerHTML=table(sorted(V.filter(v=>!v.exit)),{full:1,exitOnly:1,icon:'🎉',msg:'No visitors are currently inside the building.'});
+}
+
+/* ---------- actions ---------- */
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');if(b){act(b.dataset.a,b.dataset.id);return}
+ const g=e.target.closest('[data-go]');if(g){editId=null;go(g.dataset.go)}
+});
+function act(a,id){
+ const v=V.find(x=>x.id===id);if(!v)return;
+ if(a==='view')details(v);
+ if(a==='exit')markExit(id);
+ if(a==='edit'){editId=id;go('add');fill(v)}
+ if(a==='del')confirmDel(v);
+}
+function markExit(id){
+ const v=V.find(x=>x.id===id);if(!v||v.exit)return;
+ v.exit=nowT();save();closeM();render();toast(v.name+' marked as exited at '+fmtT(v.exit));
+}
+function confirmDel(v){
+ openM(`<h3 style="margin-top:0">Delete visitor record?</h3><p>This will permanently delete <b>${esc(v.name)}</b> (${v.id}). This cannot be undone.</p><div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn" onclick="closeM()">Cancel</button><button class="btn p" style="background:var(--bad);border-color:var(--bad)" id="cd">Delete</button></div>`);
+ $('#cd').onclick=()=>{V=V.filter(x=>x.id!==v.id);save();closeM();render();toast('Visitor record deleted')};
+}
+function details(v){
+ const f=(l,x)=>`<div><small>${l}</small>${x||'—'}</div>`;
+ openM(`<div class="row"><h3 style="margin:0">${esc(v.name)}</h3>${badge(v)}</div><small style="color:var(--muted)">${v.id}</small>
+ <div class="dl"><h4>Personal details</h4>${f('Full name',esc(v.name))}${f('Phone',esc(v.phone))}${f('Email',esc(v.email))}${f('Vehicle number',esc(v.vehicle))}
+ <h4>Visit details</h4>${f('Purpose',esc(v.purpose))}${f('Person to meet',esc(v.meet))}${f('Date',fmtD(v.date))}${f('Remarks',esc(v.remarks))}
+ <h4>Entry / exit</h4>${f('Entry time',fmtT(v.entry))}${f('Exit time',fmtT(v.exit))}${f('Current status',badge(v))}</div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">${v.exit?'':`<button class="btn p" id="me">Mark Exit</button>`}<button class="btn" id="de">Edit</button><button class="btn" onclick="closeM()">Close</button></div>`);
+ if(!v.exit)$('#me').onclick=()=>markExit(v.id);
+ $('#de').onclick=()=>{closeM();editId=v.id;go('add');fill(v)};
+}
+function openM(h){$('#mbox').innerHTML=h;$('#modal').classList.remove('hide')}
+function closeM(){$('#modal').classList.add('hide')}
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeM()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
+
+/* ---------- form ---------- */
+const F=['name','phone','email','purpose','meet','date','entry','exit','veh','rem'];
+function resetForm(){
+ editId=null;$('#vf').reset();
+ $('#f-id').value=nextId();$('#f-date').value=today();$('#f-entry').value=nowT();
+ $('#g-exit').classList.add('hide');$('#ft').textContent='Add Visitor';$('#fsub').textContent='Register Visitor';
+ $$('#vf .bad').forEach(x=>x.classList.remove('bad'));
+}
+function fill(v){
+ $('#f-id').value=v.id;$('#f-name').value=v.name;$('#f-phone').value=v.phone;$('#f-email').value=v.email;$('#f-purpose').value=v.purpose;
+ $('#f-meet').value=v.meet;$('#f-date').value=v.date;$('#f-entry').value=v.entry;$('#f-exit').value=v.exit||'';$('#f-veh').value=v.vehicle;$('#f-rem').value=v.remarks;
+ $('#g-exit').classList.remove('hide');$('#ft').textContent='Edit Visitor';$('#fsub').textContent='Save Changes';
+}
+function bad(id,cond){$('#g-'+id).classList.toggle('bad',cond);return cond}
+$('#vf').addEventListener('submit',e=>{
+ e.preventDefault();
+ const g=k=>$('#f-'+k).value.trim();
+ const en=g('entry'),ex=g('exit'),dt=g('date');
+ const errs=[bad('name',!/^[A-Za-z][A-Za-z .'-]{1,59}$/.test(g('name'))),bad('phone',!/^[6-9]\d{9}$/.test(g('phone'))),bad('email',!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(g('email'))),bad('purpose',!g('purpose')),bad('meet',g('meet').length<2),bad('date',!dt),bad('entry',!en),bad('exit',!!ex&&ex<en)];
+ if(errs.some(Boolean)){toast('Please fix the highlighted fields');return}
+ const rec={id:g('id'),name:g('name'),phone:g('phone'),email:g('email'),purpose:g('purpose'),meet:g('meet'),date:dt,entry:en,exit:editId?ex:'',vehicle:g('veh').toUpperCase(),remarks:g('rem')};
+ if(editId){V=V.map(v=>v.id===editId?rec:v);toast('Visitor details updated');editId=null;save();go('records')}
+ else{if(V.some(v=>v.id===rec.id))rec.id=nextId();V.push(rec);save();toast('Visitor '+rec.id+' registered successfully');go('records')}
+});
+$('#fcancel').onclick=()=>{const w=editId;resetForm();if(w){go('records')}};
+['name','phone','email','purpose','meet','date','entry','exit'].forEach(k=>$('#f-'+k).addEventListener('input',()=>$('#g-'+k).classList.remove('bad')));
+$('#f-phone').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,''));
+
+/* ---------- filters ---------- */
+['q','fd','fs'].forEach(i=>$('#'+i).addEventListener('input',records));
+$('#clr').onclick=()=>{$('#q').value='';$('#fd').value='';$('#fs').value='';records()};
+
+/* ---------- auth + chrome ---------- */
+function showApp(){
+ $('#login').classList.add('hide');$('#app').classList.remove('hide');load();
+ const h=location.hash.slice(1);go(['dashboard','add','records','inside'].includes(h)?h:'dashboard');
+}
+$('#lf').addEventListener('submit',e=>{
+ e.preventDefault();
+ const u=$('#u').value.trim(),p=$('#p').value;
+ const a=bad('u',!u),b=bad('p',!p);if(a||b)return;
+ if(u==='admin'&&p==='admin123'){try{sessionStorage.setItem(S,'1')}catch(x){}showApp()}
+ else{$('#pe').textContent='Invalid username or password';bad('p',true)}
+});
+['u','p'].forEach(i=>$('#'+i).addEventListener('input',()=>{$('#g-'+i).classList.remove('bad');$('#pe').textContent='Password is required'}));
+$$('aside nav a[data-v]').forEach(a=>a.onclick=()=>{editId=null;go(a.dataset.v)});
+$('#logout').onclick=()=>{try{sessionStorage.removeItem(S)}catch(e){}$('#app').classList.add('hide');$('#login').classList.remove('hide');$('#lf').reset()};
+$('#menu').onclick=()=>{$('#side').classList.add('open');$('#scrim').classList.add('show')};
+$('#scrim').onclick=()=>{$('#side').classList.remove('open');$('#scrim').classList.remove('show')};
+let ok=false;try{ok=sessionStorage.getItem(S)==='1'}catch(e){}
+if(ok)showApp();
+</script>
+</body>
+</html>
